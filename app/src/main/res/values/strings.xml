@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PhoneBook</string>
+    <string name="contact_name_hint">Введите имя</string>
+    <string name="contact_name_label">Имя</string>
+    <string name="contact_phone_hint">Введите телефон</string>
+    <string name="contact_phone_label">Телефон</string>
+</resources>

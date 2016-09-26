@@ -1,10 +1,14 @@
 package com.shilkin.sergey.phonebook.phonebook;
 
+import android.app.Activity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import java.util.UUID;
 
@@ -16,6 +20,9 @@ public class ContactFragment extends Fragment {
 
 
     private Contact mContact;
+
+    private EditText mNameField;
+    private EditText mPhoneField;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -30,6 +37,60 @@ public class ContactFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_contact, container,
                 false);
 
+        mNameField =(EditText)view.findViewById(R.id.contact_name);
+        mNameField.setText(mContact.getmName());
+        mNameField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mContact.setmName(charSequence.toString());
+                updateContact();
+                returnResult();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+        mPhoneField = (EditText)view.findViewById(R.id.contact_phone);
+        mPhoneField.setText(mContact.getmPhone());
+        mPhoneField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                mContact.setmPhone(charSequence.toString());
+                updateContact();
+                returnResult();
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+
+
+        updateContact();
+
         return view;
     }
+
+    private void updateContact(){
+        ContactsList.get(getActivity()).updateContact(mContact);
+    }
+
+    public void returnResult(){
+        getActivity().setResult(Activity.RESULT_OK, null);
+    }
+
 }

@@ -1,14 +1,19 @@
 package com.shilkin.sergey.phonebook.phonebook;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -25,6 +30,14 @@ public class ContactListFragment extends Fragment {
 
     private RecyclerView mContactsRecyclerView;
     private ContactAdapter mContactAdapter;
+    private final static int REQUEST_CONTACT = 1;
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,17 +56,42 @@ public class ContactListFragment extends Fragment {
         return view;
     }
 
-    private void updateUI(){
-        List<Contact> contacts = new ArrayList<>();
-        String name = "Имя #";
-        for(int i=0;i<100;i++){
-            Contact contact = new Contact();
-            contact.setmName(name + i);
-            contact.setmPhone("8 800 555 55 00");
-            contacts.add(contact);
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_contact_list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.menu_item_new_contact:
+                Contact contact = new Contact();
+                ContactsList.get(getActivity()).addContact(contact);
+                Intent intent = ContactActivity
+                        .newIntent(getActivity(), contact.getId());
+                startActivity(intent);
+                return true;
+            default: return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void updateUI(){
+
+        ContactsList contactsList = ContactsList.get(getActivity());
+        List<Contact> contacts = contactsList.getContacs();
+
         mContactAdapter = new ContactAdapter(contacts);
         mContactsRecyclerView.setAdapter(mContactAdapter);
+
+        /*if(mContactAdapter == null) {
+            mContactAdapter = new ContactAdapter(contacts);
+            mContactsRecyclerView.setAdapter(mContactAdapter);
+        }
+        else{
+            mContactAdapter.setCrimes(contacts);
+            mContactAdapter.notifyDataSetChanged();
+        }*/
     }
 
     private class ContactHolder extends RecyclerView.ViewHolder
@@ -85,15 +123,14 @@ public class ContactListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-          /*Intent intent = ContactActivity.newIntent(getActivity(),
-                  mContact.getId());*/
-           Toast.makeText(view.getContext(),"Button pressed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(view.getContext(),"Button pressed", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public boolean onLongClick(View view) {
-            Intent intent = new Intent(getActivity(),ContactActivity.class);
-            startActivity(intent);
+            Intent intent = ContactActivity.newIntent(getActivity(),
+                    mContact.getId());
+            startActivityForResult(intent, REQUEST_CONTACT);
             return true;
         }
     }
@@ -124,7 +161,26 @@ public class ContactListFragment extends Fragment {
         public int getItemCount() {
             return mContacts.size();
         }
+
+        public void setCrimes(List<Contact> contacts){
+            mContacts = contacts;
+        }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if(resultCode != Activity.RESULT_OK){
+            return;
+        }
+        if(requestCode == REQUEST_CONTACT){
+            updateUI();
+        }
+    }
 }

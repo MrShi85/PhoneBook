@@ -19,16 +19,29 @@ import java.util.UUID;
 public class ContactFragment extends Fragment {
 
 
+    private static final String ARG_CONTACT_ID = "crime_id";
+
     private Contact mContact;
 
     private EditText mNameField;
     private EditText mPhoneField;
 
+
+    public static ContactFragment newInstance(UUID crimeId){
+        Bundle args = new Bundle();
+        args.putSerializable(ARG_CONTACT_ID, crimeId);
+        ContactFragment fragment = new ContactFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        UUID contactID = (UUID)getActivity().getIntent().
-                getSerializableExtra(ContactActivity.EXTRA_CONTACT_ID);
+        UUID contactID = (UUID)getArguments().getSerializable(ARG_CONTACT_ID);
+        /*UUID contactID = (UUID)getActivity().getIntent().
+                getSerializableExtra(ContactActivity.EXTRA_CONTACT_ID);*/
         mContact = ContactsList.get(getActivity()).getContact(contactID);
     }
 

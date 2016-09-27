@@ -7,4 +7,8 @@
         android:title="@string/new_contact"
         app:showAsAction = "ifRoom|withText"
     />
+    <item
+        android:id="@+id/menu_item_load_contacts"
+        android:title="@string/load_contact"
+        app:showAsAction = "ifRoom"/>
 </menu>

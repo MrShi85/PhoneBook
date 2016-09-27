@@ -1,14 +1,19 @@
 package com.shilkin.sergey.phonebook.phonebook;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -31,6 +37,13 @@ public class ContactListFragment extends Fragment {
     private RecyclerView mContactsRecyclerView;
     private ContactAdapter mContactAdapter;
     private final static int REQUEST_CONTACT = 1;
+
+    private static final String CONTACT_ID = ContactsContract.Contacts._ID;
+    private static final String DISPLAY_NAME = ContactsContract.Contacts.DISPLAY_NAME;
+    private static final String HAS_PHONE_NUMBER = ContactsContract.Contacts.HAS_PHONE_NUMBER;
+    private static final String PHONE_NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
+    private static final String PHONE_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
+
 
 
     @Override
@@ -68,9 +81,12 @@ public class ContactListFragment extends Fragment {
             case R.id.menu_item_new_contact:
                 Contact contact = new Contact();
                 ContactsList.get(getActivity()).addContact(contact);
-                Intent intent = ContactActivity
+                Intent intent = ContactPagerActivity
                         .newIntent(getActivity(), contact.getId());
                 startActivity(intent);
+                return true;
+            case R.id.menu_item_load_contacts:
+                loadContacs();
                 return true;
             default: return super.onOptionsItemSelected(item);
         }
@@ -128,7 +144,7 @@ public class ContactListFragment extends Fragment {
 
         @Override
         public boolean onLongClick(View view) {
-            Intent intent = ContactActivity.newIntent(getActivity(),
+            Intent intent = ContactPagerActivity.newIntent(getActivity(),
                     mContact.getId());
             startActivityForResult(intent, REQUEST_CONTACT);
             return true;
@@ -182,5 +198,55 @@ public class ContactListFragment extends Fragment {
         if(requestCode == REQUEST_CONTACT){
             updateUI();
         }
+    }
+
+    private void loadContacs(){
+
+        ContentResolver cr = getActivity().getContentResolver();
+
+        Cursor pCur = cr.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                new String[]{PHONE_NUMBER, PHONE_CONTACT_ID},
+                null,
+                null,
+                null
+        );
+        if(pCur != null){
+            if(pCur.getCount() > 0) {
+                HashMap<Integer, ArrayList<String>> phones = new HashMap<>();
+                while (pCur.moveToNext()) {
+                    Integer contactId = pCur.getInt(pCur.getColumnIndex(PHONE_CONTACT_ID));
+                    ArrayList<String> curPhones = new ArrayList<>();
+                    if (phones.containsKey(contactId)) {
+                        curPhones = phones.get(contactId);
+                    }
+                    curPhones.add(pCur.getString(pCur.getColumnIndex(PHONE_CONTACT_ID)));
+                    phones.put(contactId, curPhones);
+                }
+                Cursor cur = cr.query(
+                        ContactsContract.Contacts.CONTENT_URI,
+                        new String[]{CONTACT_ID, DISPLAY_NAME, HAS_PHONE_NUMBER},
+                        HAS_PHONE_NUMBER + " > 0",
+                        null,
+                        DISPLAY_NAME + " ASC");
+                if (cur != null) {
+                    if (cur.getCount() > 0) {
+                        ArrayList<Contact> contacts = new ArrayList<>();
+                        while (cur.moveToNext()) {
+                            int id = cur.getInt(cur.getColumnIndex(CONTACT_ID));
+                            if(phones.containsKey(id)) {
+                                Contact con = new Contact();
+                                con.setmName(cur.getString(cur.getColumnIndex(DISPLAY_NAME)));
+                                con.setmPhone(TextUtils.join(",", phones.get(id).toArray()));
+                                ContactsList.get(getActivity()).addContact(con);
+                            }
+                        }
+                    }
+                    cur.close();
+                }
+            }
+            pCur.close();
+        }
+
     }
 }

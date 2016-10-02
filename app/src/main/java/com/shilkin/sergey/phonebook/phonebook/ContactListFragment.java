@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
@@ -33,7 +34,6 @@ import java.util.List;
  * Created by User on 23.09.2016.
  */
 public class ContactListFragment extends Fragment {
-
     private RecyclerView mContactsRecyclerView;
     private ContactAdapter mContactAdapter;
     private final static int REQUEST_CONTACT = 1;
@@ -139,7 +139,10 @@ public class ContactListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            Toast.makeText(view.getContext(),"Button pressed", Toast.LENGTH_SHORT).show();
+            String number = mContact.getmPhone();
+            Intent intent = new Intent(Intent.ACTION_DIAL);
+            intent.setData(Uri.parse("tel:" +number));
+            startActivity(intent);
         }
 
         @Override
@@ -207,10 +210,11 @@ public class ContactListFragment extends Fragment {
         Cursor pCur = cr.query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                 new String[]{PHONE_NUMBER, PHONE_CONTACT_ID},
-                null,
-                null,
+                ContactsContract.CommonDataKinds.Phone.TYPE + " = ?",
+                new String[]{String.valueOf(ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)},
                 null
         );
+
         if(pCur != null){
             if(pCur.getCount() > 0) {
                 HashMap<Integer, ArrayList<String>> phones = new HashMap<>();
@@ -220,7 +224,7 @@ public class ContactListFragment extends Fragment {
                     if (phones.containsKey(contactId)) {
                         curPhones = phones.get(contactId);
                     }
-                    curPhones.add(pCur.getString(pCur.getColumnIndex(PHONE_CONTACT_ID)));
+                    curPhones.add(pCur.getString(pCur.getColumnIndex(PHONE_NUMBER)));
                     phones.put(contactId, curPhones);
                 }
                 Cursor cur = cr.query(
@@ -231,15 +235,18 @@ public class ContactListFragment extends Fragment {
                         DISPLAY_NAME + " ASC");
                 if (cur != null) {
                     if (cur.getCount() > 0) {
-                        ArrayList<Contact> contacts = new ArrayList<>();
+                        List<Contact>  contacts = ContactsList.get(getActivity()).getContacs();
                         while (cur.moveToNext()) {
                             int id = cur.getInt(cur.getColumnIndex(CONTACT_ID));
                             if(phones.containsKey(id)) {
                                 Contact con = new Contact();
                                 con.setmName(cur.getString(cur.getColumnIndex(DISPLAY_NAME)));
                                 con.setmPhone(TextUtils.join(",", phones.get(id).toArray()));
-                                ContactsList.get(getActivity()).addContact(con);
+                                if(!isContains(contacts, con)) {
+                                    ContactsList.get(getActivity()).addContact(con);
+                                }
                             }
+                            updateUI();
                         }
                     }
                     cur.close();
@@ -248,5 +255,15 @@ public class ContactListFragment extends Fragment {
             pCur.close();
         }
 
+    }
+
+    private boolean isContains(List<Contact> contactList, Contact contact){
+        String phone = contact.getmPhone();
+        for(Contact item :contactList){
+            if(item.getmPhone()==phone){
+                return true;
+            }
+        }
+        return false;
     }
 }

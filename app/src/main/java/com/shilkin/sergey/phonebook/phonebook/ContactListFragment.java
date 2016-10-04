@@ -260,7 +260,7 @@ public class ContactListFragment extends Fragment {
     private boolean isContains(List<Contact> contactList, Contact contact){
         String phone = contact.getmPhone();
         for(Contact item :contactList){
-            if(item.getmPhone()==phone){
+            if(item.getmPhone().equals(phone)){
                 return true;
             }
         }

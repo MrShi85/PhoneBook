@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactCursorWrapper;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactsBaseHelper;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactDbSchema.ContactTable;
@@ -25,6 +27,8 @@ public class ContactsList {
     private Context mContext;
     private SQLiteDatabase mDatabase;
 
+    private DatabaseReference mFDatabase;
+
     public static ContactsList get(Context context){
         if(sContactsList == null){
             sContactsList = new ContactsList(context);
@@ -36,9 +40,18 @@ public class ContactsList {
         ContentValues values = getContentValues(c);
 
         mDatabase.insert(ContactTable.NAME,null, values);
+
+        /*// Write a message to the database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("message");
+
+        myRef.setValue("Hello, World!");*/
+
+        mFDatabase.child("users").child(c.getId().toString()).setValue(c);
     }
 
     private ContactsList(Context context){
+        mFDatabase = FirebaseDatabase.getInstance().getReference();
         mContext = context.getApplicationContext();
         mDatabase = new ContactsBaseHelper(mContext).getWritableDatabase();
     }
@@ -48,6 +61,38 @@ public class ContactsList {
         List<Contact> Contacts = new ArrayList<>();
 
         ContactCursorWrapper cursor = queryContacts(null,null);
+
+        try{
+            cursor.moveToFirst();
+            while(!cursor.isAfterLast()){
+                Contacts.add(cursor.getContact());
+                cursor.moveToNext();
+            }
+        }
+        finally {
+            cursor.close();
+        }
+        return Contacts;
+    }
+
+    public List<Contact> getContacs(String name)
+    {
+        List<Contact> Contacts = new ArrayList<>();
+
+        ContactCursorWrapper cursor;
+
+        if(name.trim().length() == 0 ){
+            cursor = queryContacts(null,null);
+        }
+        else{
+            /*cursor = queryContacts(
+                    ContactTable.Cols.NAME + " LIKE '?'",
+                    new String[] {name+"%"});*/
+            cursor = queryContacts(
+                    ContactTable.Cols.NAME + " LIKE '%"+name+"%'",
+                    null);
+        }
+
 
         try{
             cursor.moveToFirst();
@@ -87,6 +132,9 @@ public class ContactsList {
         mDatabase.update(ContactTable.NAME, values,
                 ContactTable.Cols.UUID + " = ?" ,
                 new String[]{uuidString});
+
+        mFDatabase.child("users").child(uuidString).child("mName").setValue(Contact.getmName());
+        mFDatabase.child("users").child(uuidString).child("mPhone").setValue(Contact.getmPhone());
     }
 
     private static ContentValues getContentValues(Contact Contact){
@@ -106,7 +154,7 @@ public class ContactsList {
                 whereArgs,
                 null,
                 null,
-                null);
+                ContactTable.Cols.NAME);
         return  new ContactCursorWrapper(cursor);
     }
     public int getPosition(UUID id){

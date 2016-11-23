@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ public class ContactListFragment extends Fragment {
     private RecyclerView mContactsRecyclerView;
     private ContactAdapter mContactAdapter;
     private final static int REQUEST_CONTACT = 1;
+    private static final String TAG = "ContactListFragment";
 
     private static final String CONTACT_ID = ContactsContract.Contacts._ID;
     private static final String DISPLAY_NAME = ContactsContract.Contacts.DISPLAY_NAME;
@@ -73,11 +75,33 @@ public class ContactListFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_contact_list, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_seach);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener( new SearchView.OnQueryTextListener(){
+                                               @Override
+                                               public boolean onQueryTextSubmit(String s) {
+                                                   Log.d(TAG, "QueryTextSubmit: " + s);
+                                                   updateUI(s);
+                                                   return true;
+                                               }
+
+                                               @Override
+                                               public boolean onQueryTextChange(String s) {
+                                                   Log.d(TAG, "QueryTextChange: " + s);
+                                                   updateUI(s);
+                                                   return false;
+                                               }
+                                           }
+        );
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()){
+            case R.id.menu_item_clear:
+                updateUI();
+                return true;
             case R.id.menu_item_new_contact:
                 Contact contact = new Contact();
                 ContactsList.get(getActivity()).addContact(contact);
@@ -96,6 +120,24 @@ public class ContactListFragment extends Fragment {
 
         ContactsList contactsList = ContactsList.get(getActivity());
         List<Contact> contacts = contactsList.getContacs();
+
+        mContactAdapter = new ContactAdapter(contacts);
+        mContactsRecyclerView.setAdapter(mContactAdapter);
+
+        /*if(mContactAdapter == null) {
+            mContactAdapter = new ContactAdapter(contacts);
+            mContactsRecyclerView.setAdapter(mContactAdapter);
+        }
+        else{
+            mContactAdapter.setCrimes(contacts);
+            mContactAdapter.notifyDataSetChanged();
+        }*/
+    }
+
+    private void updateUI(String name){
+
+        ContactsList contactsList = ContactsList.get(getActivity());
+        List<Contact> contacts = contactsList.getContacs(name);
 
         mContactAdapter = new ContactAdapter(contacts);
         mContactsRecyclerView.setAdapter(mContactAdapter);
@@ -260,7 +302,7 @@ public class ContactListFragment extends Fragment {
     private boolean isContains(List<Contact> contactList, Contact contact){
         String phone = contact.getmPhone();
         for(Contact item :contactList){
-            if(item.getmPhone().equals(phone)){
+            if(item.getmPhone()!=null && item.getmPhone().equals(phone)){
                 return true;
             }
         }

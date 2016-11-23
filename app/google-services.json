@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "947200801597",
+    "firebase_url": "https://phonelist-8a423.firebaseio.com",
+    "project_id": "phonelist-8a423",
+    "storage_bucket": "phonelist-8a423.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:947200801597:android:6f3d01bd65b73a8f",
+        "android_client_info": {
+          "package_name": "com.shilkin.sergey.phonebook.phonebook"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "947200801597-fuhm925v94tubo637l2huq092ep5b9q5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhm9LerBpE0noun7FElHoiOIHY6aD6uVg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

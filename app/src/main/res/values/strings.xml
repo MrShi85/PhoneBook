@@ -6,6 +6,7 @@
     <string name="contact_phone_label">Телефон</string>
     <string name="new_contact">Новый контакт</string>
     <string name="load_contact">Добавить контакты</string>
+    <string name="load_contact_firebase">Контакты с сервера</string>
     <string name="search">Поиск</string>
     <string name="clear_search">Очистить поиск</string>
 </resources>

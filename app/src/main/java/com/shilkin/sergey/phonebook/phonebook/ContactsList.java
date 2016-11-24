@@ -5,10 +5,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
+import android.util.Log;
 
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactCursorWrapper;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactsBaseHelper;
 import com.shilkin.sergey.phonebook.phonebook.database.ContactDbSchema.ContactTable;
@@ -47,7 +51,48 @@ public class ContactsList {
 
         myRef.setValue("Hello, World!");*/
 
-        mFDatabase.child("users").child(c.getId().toString()).setValue(c);
+        mFDatabase.child("users").child(c.getId().toString()).child("name").setValue(c.getmName());
+        mFDatabase.child("users").child(c.getId().toString()).child("phone").setValue(c.getmPhone());
+        //mFDatabase.child("users").child(c.getId().toString()).setValue(c);
+    }
+
+
+
+    public void loadContactsFirebase() {
+        mFDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot user : dataSnapshot.child("users").getChildren()) {
+                    String uid = (String) user.getKey();
+                    String name = (String) user.child("name").getValue();
+                    String phone = (String) user.child("phone").getValue();
+                    if(!isContainsPhone(phone)) {
+                        Contact contact = new Contact(UUID.fromString(uid));
+                        contact.setmName(name);
+                        contact.setmPhone(phone);
+                        addContact(contact);
+                    }
+                }
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //Log.w(TAG, "loadUser:onCancelled", databaseError.toException());
+            }
+        });
+    }
+
+    private boolean isContainsPhone(String phone){
+        List<Contact> contactList = getContacs();
+        for(Contact item :contactList){
+            if(item.getmPhone()!=null && item.getmPhone().equals(phone)){
+                return true;
+            }
+        }
+        return false;
     }
 
     private ContactsList(Context context){
@@ -133,8 +178,8 @@ public class ContactsList {
                 ContactTable.Cols.UUID + " = ?" ,
                 new String[]{uuidString});
 
-        mFDatabase.child("users").child(uuidString).child("mName").setValue(Contact.getmName());
-        mFDatabase.child("users").child(uuidString).child("mPhone").setValue(Contact.getmPhone());
+        mFDatabase.child("users").child(uuidString).child("name").setValue(Contact.getmName());
+        mFDatabase.child("users").child(uuidString).child("phone").setValue(Contact.getmPhone());
     }
 
     private static ContentValues getContentValues(Contact Contact){

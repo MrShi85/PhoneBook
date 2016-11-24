@@ -5,8 +5,8 @@
                 android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/contact_photo"
         android:scaleType="centerInside"
         android:background="@drawable/image_view_oval"
@@ -32,7 +32,7 @@
         android:layout_toLeftOf="@id/list_item_contact_button_call"
         android:layout_toRightOf="@id/contact_photo"
         tools:text = "Name"
-        android:textStyle="bold"/>
+        android:textSize="18dp"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -43,5 +43,6 @@
         android:layout_below="@id/list_item_contact_name_text_view"
         android:layout_toRightOf="@id/contact_photo"
         tools:text = "Phone number"
-        android:textStyle="bold"/>
+        android:textSize="18dp"
+        />
 </RelativeLayout>

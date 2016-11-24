@@ -112,6 +112,9 @@ public class ContactListFragment extends Fragment {
             case R.id.menu_item_load_contacts:
                 loadContacs();
                 return true;
+            case R.id.menu_item_load_contacts_firebase:
+                loadContacsFirebase();
+                return true;
             default: return super.onOptionsItemSelected(item);
         }
     }
@@ -243,6 +246,12 @@ public class ContactListFragment extends Fragment {
         if(requestCode == REQUEST_CONTACT){
             updateUI();
         }
+    }
+
+    private void loadContacsFirebase(){
+        ContactsList contactsList = ContactsList.get(getActivity());
+        contactsList.loadContactsFirebase();
+        updateUI();
     }
 
     private void loadContacs(){

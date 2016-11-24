@@ -27,9 +27,16 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by User on 23.09.2016.
@@ -249,11 +256,37 @@ public class ContactListFragment extends Fragment {
     }
 
     private void loadContacsFirebase(){
-        ContactsList contactsList = ContactsList.get(getActivity());
-        contactsList.loadContactsFirebase();
-        updateUI();
-    }
 
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                ContactsList contactsList = ContactsList.get(getActivity());
+                List<Contact> contacts = contactsList.getContacs();
+
+                for (DataSnapshot user : dataSnapshot.child("users").getChildren()) {
+                    String uid = (String) user.getKey();
+                    String name = (String) user.child("name").getValue();
+                    String phone = (String) user.child("phone").getValue();
+                    if(!isContainsPhone(phone, contacts)) {
+                        Contact contact = new Contact(UUID.fromString(uid));
+                        contact.setmName(name);
+                        contact.setmPhone(phone);
+                        contactsList.addContact(contact);
+                    }
+                }
+                updateUI();
+            }
+
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //Log.w(TAG, "loadUser:onCancelled", databaseError.toException());
+            }
+         });
+    }
     private void loadContacs(){
 
         ContentResolver cr = getActivity().getContentResolver();
@@ -317,4 +350,14 @@ public class ContactListFragment extends Fragment {
         }
         return false;
     }
+
+    private boolean isContainsPhone(String phone, List<Contact> contactList){
+        for(Contact item :contactList){
+            if(item.getmPhone()!=null && item.getmPhone().equals(phone)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

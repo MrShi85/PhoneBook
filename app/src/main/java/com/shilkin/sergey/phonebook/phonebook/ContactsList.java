@@ -56,45 +56,6 @@ public class ContactsList {
         //mFDatabase.child("users").child(c.getId().toString()).setValue(c);
     }
 
-
-
-    public void loadContactsFirebase() {
-        mFDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for (DataSnapshot user : dataSnapshot.child("users").getChildren()) {
-                    String uid = (String) user.getKey();
-                    String name = (String) user.child("name").getValue();
-                    String phone = (String) user.child("phone").getValue();
-                    if(!isContainsPhone(phone)) {
-                        Contact contact = new Contact(UUID.fromString(uid));
-                        contact.setmName(name);
-                        contact.setmPhone(phone);
-                        addContact(contact);
-                    }
-                }
-            }
-
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                //Log.w(TAG, "loadUser:onCancelled", databaseError.toException());
-            }
-        });
-    }
-
-    private boolean isContainsPhone(String phone){
-        List<Contact> contactList = getContacs();
-        for(Contact item :contactList){
-            if(item.getmPhone()!=null && item.getmPhone().equals(phone)){
-                return true;
-            }
-        }
-        return false;
-    }
-
     private ContactsList(Context context){
         mFDatabase = FirebaseDatabase.getInstance().getReference();
         mContext = context.getApplicationContext();
